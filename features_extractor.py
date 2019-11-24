@@ -7,7 +7,7 @@ gklas = {'habit': [1122, 1130, 1121, 1110, 1211, 1212], 'office': [1220, 1230, 1
 
 if __name__ == '__main__':
   sanitized = pd.read_csv('data/sanitized.csv', delimiter=',')
-  sanitized.rename({'heatingNeeds(Wh)': 'heating', 'coolingNeeds(Wh)': 'cooling'})
+  sanitized.rename(columns={'heatingNeeds(Wh)': 'heating', 'coolingNeeds(Wh)': 'cooling'}, inplace=True)
 
   for label, values in gbaup.items():
     sanitized[label] = sanitized['GBAUP'].apply(lambda s: 1 if s in values else 0)

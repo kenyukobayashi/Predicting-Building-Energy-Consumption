@@ -1,4 +1,4 @@
-EGID,heatingNeeds(Wh),coolingNeeds(Wh),GASTW,GAREA,b19,19-45,46-60,61-70,71-80,81-90,91-2000,a2000,habit,office,industrial,hobbies,others
+EGID,heating,cooling,GASTW,GAREA,b19,19-45,46-60,61-70,71-80,81-90,91-2000,a2000,habit,office,industrial,hobbies,others
 2039711,97969700.0,-3297250.0,2.0,430.0,0,0,0,0,1,0,0,0,0,0,0,1,0
 1013154,47263900.0,-134815000.0,13.0,327.0,0,0,0,1,0,0,0,0,1,0,0,0,0
 1013149,240553000.0,-5804170.0,6.0,422.0,1,0,0,0,0,0,0,0,1,0,0,0,0
