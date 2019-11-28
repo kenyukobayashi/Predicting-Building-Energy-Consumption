@@ -42,13 +42,17 @@ class DataPreProcessor:
 
   def normalize(self, df):
     for c, (sub, div) in self.norm_factors.items():
-      df[c] = (df[c] - sub) / div
+      # if c == 'heating':
+      #   df[c] = np.log10(df[c])
+      # else:
+        df[c] = (df[c] - sub) / div
     return df
 
   def denormalize(self, df, column='heating'):
     sub, div = self.norm_factors.get(column, (0, 1))
     df = df * div + sub
     return df
+    # return np.power(df, 10)
 
 
 class PandaDataset(Dataset):
@@ -117,15 +121,23 @@ if __name__ == '__main__':
               n_hidden=8)
 
     losses = []
+    relative_diff = []
     for j in range(20_000):
       avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te = ann.do_epoch()
-      losses.append((loss, loss_te))
       if j % 100 == 0:
+        losses.append((loss, loss_te))
+        relative_diff.append((avg_diff, avg_diff_te))
         print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
               .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te, l=loss,
                       lr=ann.get_lr(), a=nb_above * 100.0))
-    plt.plot(losses)
-    plt.ylabel("MSE")
-    plt.xlabel("Epoch")
-    plt.legend(["train", "test"])
+
+    fig, (ax1, ax2) = plt.subplots(2)
+    ax1.plot(losses[10:])
+    ax2.plot(relative_diff[10:])
+
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('MSE')
+    ax2.set_ylabel('relative difference')
+    fig.legend(["train", "test"], loc='center left')
+
     plt.show()
