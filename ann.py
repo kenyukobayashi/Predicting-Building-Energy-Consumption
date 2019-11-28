@@ -68,9 +68,12 @@ def evaluate(panda_dataset, preprocessor, model):
   predictions = model(panda_dataset.features).detach().numpy()
   predictions = preprocessor.denormalize(predictions)
   expected = preprocessor.denormalize(panda_dataset.labels.numpy())
-  diff = np.abs(predictions - expected) / expected
-  # print(np.greater(predictions > expected))x
-  return diff.mean(), 1.0 * np.sum(predictions > expected) / len(diff)
+
+  diff = predictions - expected
+  rel_diff = (np.abs(diff) / expected).mean()
+  mse = np.square(diff).mean()
+  nb_above = 1.0 * np.sum(predictions > expected) / len(diff)
+  return rel_diff, nb_above, mse
 
 
 if __name__ == '__main__':
@@ -79,16 +82,16 @@ if __name__ == '__main__':
 
     n_features = dataset.iloc[1:2].drop(columns=['heating', 'cooling']).shape[1]
     n_output = 1
-    n_hidden = 10 #int((n_features + n_output) / 2)
+    n_hidden = 8 #int((n_features + n_output) / 2)
 
     data = DataPreProcessor(dataset)
 
     model = nn.Sequential(nn.Linear(n_features, n_hidden),
-                          nn.ReLU(),
+                          nn.LeakyReLU(),
                           # nn.Linear(n_hidden, n_hidden),
                           # nn.Sigmoid(),
                           nn.Linear(n_hidden, n_output),
-                          nn.ReLU()
+                          nn.LeakyReLU()
                           # nn.Linear(n_output, n_output),
                           # nn.ELU()
                           )
@@ -99,7 +102,6 @@ if __name__ == '__main__':
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True, )
 
     for j in range(50000):
-      losses = 0
       for feat, target in data.train:
         optimizer.zero_grad()
 
@@ -111,13 +113,11 @@ if __name__ == '__main__':
 
         out_d = data.denormalize(out)
         target_d = data.denormalize(target)
-        # losses += torch.mean(abs((out_d - target_d) / target_d))
-        losses += loss.item()
-      # scheduler.step(losses)
 
-      avg_diff, nb_above = evaluate(data.train.dataset, data, model)
+      avg_diff, nb_above, loss = evaluate(data.train.dataset, data, model)
+      avg_diff_te, nb_above_te, loss_te = evaluate(data.test.dataset, data, model)
       scheduler.step(avg_diff)
       if j % 100 == 0:
-        losses /= len(data.train)
-        print("Step {j}: relative average error on train: {e:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
-              .format(j=j, e=avg_diff * 100, l=losses, lr=[ group['lr'] for group in optimizer.param_groups ][0], a=nb_above*100.0))
+        print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
+              .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te, l=loss,
+                      lr=[group['lr'] for group in optimizer.param_groups][0], a=nb_above * 100.0))
