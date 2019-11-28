@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # try SVM
 # get baseline
 # ReLu and no normalize
-#
+# adam optim
 
 def df_to_tensor(df):
   return torch.from_numpy(df.values).float()
@@ -77,53 +77,53 @@ def evaluate(panda_dataset, preprocessor, model):
   return rel_diff, nb_above, mse
 
 
+class Ann:
+  def __init__(self, data: DataPreProcessor, n_features, n_output, n_hidden):
+    self.model = nn.Sequential(
+      nn.Linear(n_features, n_hidden),
+      nn.LeakyReLU(),
+      nn.Linear(n_hidden, n_output),
+      nn.LeakyReLU()
+    )
+    self.data = data
+    self.criterionH = nn.MSELoss()
+    self.optimizer = optim.SGD(self.model.parameters(), lr=0.010)
+    self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True)
+
+  def do_epoch(self):
+    for feat, target in data.train:
+      self.optimizer.zero_grad()
+      out = self.model(feat)
+      loss = self.criterionH(out, target)
+      loss.backward()
+      self.optimizer.step()
+    avg_diff, nb_above, loss = evaluate(self.data.train.dataset, data, self.model)
+    avg_diff_te, nb_above_te, loss_te = evaluate(self.data.test.dataset, data, self.model)
+    self.scheduler.step(avg_diff)
+    return avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te
+
+  def get_lr(self):
+    return self.optimizer.param_groups[0]['lr']
+
+
 if __name__ == '__main__':
     dataset = pd.read_csv('data/features.csv').set_index('EGID')
     dataset.dropna(inplace=True)
-
-    n_features = dataset.iloc[1:2].drop(columns=['heating', 'cooling']).shape[1]
-    n_output = 1
-    n_hidden = 8 #int((n_features + n_output) / 2)
-
     data = DataPreProcessor(dataset)
 
-    model = nn.Sequential(nn.Linear(n_features, n_hidden),
-                          nn.LeakyReLU(),
-                          # nn.Linear(n_hidden, n_hidden),
-                          # nn.Sigmoid(),
-                          nn.Linear(n_hidden, n_output),
-                          nn.LeakyReLU()
-                          # nn.Linear(n_output, n_output),
-                          # nn.ELU()
-                          )
-    criterionH = nn.MSELoss()
-
-    # adam optim
-    optimizer = optim.SGD(model.parameters(), lr=0.010)
-    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True, )
+    ann = Ann(data,
+              n_features=dataset.iloc[1:2].drop(columns=['heating', 'cooling']).shape[1],
+              n_output=1,
+              n_hidden=8)
 
     losses = []
     for j in range(20_000):
-      for feat, target in data.train:
-        optimizer.zero_grad()
-
-        out = model(feat)
-
-        loss = criterionH(out, target)
-        loss.backward()
-        optimizer.step()
-
-        out_d = data.denormalize(out)
-        target_d = data.denormalize(target)
-
-      avg_diff, nb_above, loss = evaluate(data.train.dataset, data, model)
-      avg_diff_te, nb_above_te, loss_te = evaluate(data.test.dataset, data, model)
+      avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te = ann.do_epoch()
       losses.append((loss, loss_te))
-      scheduler.step(avg_diff)
       if j % 100 == 0:
         print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
               .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te, l=loss,
-                      lr=[group['lr'] for group in optimizer.param_groups][0], a=nb_above * 100.0))
+                      lr=ann.get_lr(), a=nb_above * 100.0))
     plt.plot(losses)
     plt.ylabel("MSE")
     plt.xlabel("Epoch")
