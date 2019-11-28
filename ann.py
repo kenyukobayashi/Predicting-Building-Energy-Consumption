@@ -5,6 +5,7 @@ from torch import nn
 from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, Dataset
+import matplotlib.pyplot as plt
 
 
 # try SVM
@@ -101,7 +102,8 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=0.010)
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True, )
 
-    for j in range(50000):
+    losses = []
+    for j in range(20_000):
       for feat, target in data.train:
         optimizer.zero_grad()
 
@@ -116,8 +118,14 @@ if __name__ == '__main__':
 
       avg_diff, nb_above, loss = evaluate(data.train.dataset, data, model)
       avg_diff_te, nb_above_te, loss_te = evaluate(data.test.dataset, data, model)
+      losses.append((loss, loss_te))
       scheduler.step(avg_diff)
       if j % 100 == 0:
         print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
               .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te, l=loss,
                       lr=[group['lr'] for group in optimizer.param_groups][0], a=nb_above * 100.0))
+    plt.plot(losses)
+    plt.ylabel("MSE")
+    plt.xlabel("Epoch")
+    plt.legend(["train", "test"])
+    plt.show()
