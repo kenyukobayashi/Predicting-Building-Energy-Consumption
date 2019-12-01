@@ -1,84 +1,16 @@
+import matplotlib.pyplot as plt
 import pandas as pd
-import torch
-import numpy as np
 from torch import nn
 from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.utils.data import DataLoader, Dataset
-import matplotlib.pyplot as plt
+
+from preprocessor import DataPreProcessor
 
 
 # try SVM
 # get baseline
 # ReLu and no normalize
 # adam optim
-
-def df_to_tensor(df):
-  return torch.from_numpy(df.values).float()
-
-
-class DataPreProcessor:
-  def __init__(self, df, split_factor=0.75, columns_to_normalize=None):
-    indices = np.random.permutation(df.shape[0])
-    split = int(df.shape[0] * split_factor)
-    tr = indices[:split]
-    te = indices[split:]
-    train = df.iloc[tr].copy()
-    test = df.iloc[te].copy()
-
-    self.compute_normal(train, columns_to_normalize)
-    self.train = DataLoader(PandaDataset(self.normalize(train)), batch_size=16, shuffle=True)
-    self.test = DataLoader(PandaDataset(self.normalize(test)), batch_size=1, shuffle=True)
-
-  def compute_normal(self, tr, columns_to_normalize):
-    if columns_to_normalize is None:
-      # columns_to_normalize = ['heating', 'cooling', 'GASTW', 'GAREA']
-      columns_to_normalize = ['GASTW', 'GAREA']
-    self.norm_factors = {'heating': (0, 1e8)}
-    for c in columns_to_normalize:
-      col = tr[c]
-      # self.norm_factors[c] = (0, col.max())
-      self.norm_factors[c] = (col.min(), col.max() - col.min())
-
-  def normalize(self, df):
-    for c, (sub, div) in self.norm_factors.items():
-      # if c == 'heating':
-      #   df[c] = np.log10(df[c])
-      # else:
-        df[c] = (df[c] - sub) / div
-    return df
-
-  def denormalize(self, df, column='heating'):
-    sub, div = self.norm_factors.get(column, (0, 1))
-    df = df * div + sub
-    return df
-    # return np.power(df, 10)
-
-
-class PandaDataset(Dataset):
-    def __init__(self, df):
-      super(PandaDataset, self).__init__()
-      self.n = df.shape[0]
-      self.features = df_to_tensor(df.drop(columns=['heating', 'cooling']))
-      self.labels = df_to_tensor(df[['heating']])
-
-    def __len__(self):
-        return self.n
-
-    def __getitem__(self, index):
-        return self.features[index], self.labels[index]
-
-
-def evaluate(panda_dataset, preprocessor, model):
-  predictions = model(panda_dataset.features).detach().numpy()
-  predictions = preprocessor.denormalize(predictions)
-  expected = preprocessor.denormalize(panda_dataset.labels.numpy())
-
-  diff = predictions - expected
-  rel_diff = (np.abs(diff) / expected).mean()
-  mse = np.square(diff).mean()
-  nb_above = 1.0 * np.sum(predictions > expected) / len(diff)
-  return rel_diff, nb_above, mse
 
 
 class Ann:
@@ -95,14 +27,16 @@ class Ann:
     self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True)
 
   def do_epoch(self):
-    for feat, target in data.train:
+    for feat, target in data.train_loader:
       self.optimizer.zero_grad()
       out = self.model(feat)
       loss = self.criterionH(out, target)
       loss.backward()
       self.optimizer.step()
-    avg_diff, nb_above, loss = evaluate(self.data.train.dataset, data, self.model)
-    avg_diff_te, nb_above_te, loss_te = evaluate(self.data.test.dataset, data, self.model)
+    train_predictions = self.model(self.data.train.features_t).detach().numpy()
+    test_predictions = self.model(self.data.test.features_t).detach().numpy()
+    avg_diff, nb_above, loss = data.evaluate(self.data.train, train_predictions)
+    avg_diff_te, nb_above_te, loss_te = data.evaluate(self.data.test, test_predictions)
     self.scheduler.step(avg_diff)
     return avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te
 
@@ -127,9 +61,10 @@ if __name__ == '__main__':
       if j % 100 == 0:
         losses.append((loss, loss_te))
         relative_diff.append((avg_diff, avg_diff_te))
-        print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
-              .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te, l=loss,
-                      lr=ann.get_lr(), a=nb_above * 100.0))
+        print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. "
+              "LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
+              .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te,
+                      l=loss, lr=ann.get_lr(), a=nb_above * 100.0))
 
     fig, (ax1, ax2) = plt.subplots(2)
     ax1.plot(losses[10:])
