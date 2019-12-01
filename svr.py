@@ -6,11 +6,9 @@ from sklearn.svm import SVR
 
 
 class Svr:
-    def __init__(self, data: DataPreProcessor, kernel_type='rbf', gamma='auto'):
+    def __init__(self, data: DataPreProcessor, tolerance, epsilon, kernel_type='rbf', gamma='auto'):
         self.data = data
-        self.kernel = kernel_type
-        self.gamma = gamma
-        self.regressor = SVR(kernel = kernel_type, gamma = gamma)
+        self.regressor = SVR(kernel = kernel_type, gamma = gamma, tol=tolerance, epsilon=epsilon)
 
     def fit(self, train_x, train_y):
         self.regressor.fit(train_x, train_y)
@@ -28,9 +26,9 @@ if __name__ == '__main__':
     """
     On peut choisir parmis : 
     'linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ pour kernel type
-    'scale' ou 'auto' pour gamma
+    'scale' ou 'auto' ou float pour gamma
     """
-    svr = Svr(data)
+    svr = Svr(data, tolerance=0.0000001, epsilon=0.00000001, kernel_type='rbf', gamma='auto')
 
     # Retrieving the different sets
     train_x = svr.data.train.features.to_numpy()
