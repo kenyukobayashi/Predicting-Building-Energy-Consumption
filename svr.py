@@ -19,7 +19,7 @@ class Svr:
 
 if __name__ == '__main__':
   # Importing the dataset
-  dataset = pd.read_csv('data/features.csv').set_index('EGID')
+  dataset = pd.read_csv('data/sanitized_complete.csv').set_index('EGID')
   dataset.dropna(inplace=True)
 
   # Instanciating the data preprocessor and the model

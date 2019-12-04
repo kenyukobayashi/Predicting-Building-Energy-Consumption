@@ -52,7 +52,7 @@ if __name__ == '__main__':
     ann = Ann(data,
               n_features=dataset.iloc[1:2].drop(columns=['heating', 'cooling']).shape[1],
               n_output=1,
-              n_hidden=8)
+              n_hidden=6)
 
     losses = []
     relative_diff = []
