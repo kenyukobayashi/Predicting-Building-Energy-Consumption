@@ -4,11 +4,14 @@ from torch.utils.data import DataLoader, Dataset
 
 
 class DataPreProcessor:
-  def __init__(self, df, split_factor=0.75, columns_to_normalize=None):
-    indices = np.random.permutation(df.shape[0])
-    split = int(df.shape[0] * split_factor)
-    tr = indices[:split]
-    te = indices[split:]
+  def __init__(self, df, split=0.75, columns_to_normalize=None):
+    if isinstance(split, float):
+      indices = np.random.permutation(df.shape[0])
+      split = int(df.shape[0] * split)
+      tr = indices[:split]
+      te = indices[split:]
+    else:
+      tr, te = split
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
@@ -36,17 +39,17 @@ class DataPreProcessor:
 
   def normalize(self, df):
     for c, (sub, div) in self.norm_factors.items():
-      # if c == 'heating':
-      #   df[c] = np.log10(df[c])
-      # else:
+      if c == 'heating':
+        df[c] = np.log10(df[c])
+      else:
         df[c] = (df[c] - sub) / div
     return df
 
   def denormalize(self, df, column='heating'):
-    sub, div = self.norm_factors.get(column, (0, 1))
-    df = df * div + sub
-    return df
-    # return np.power(df, 10)
+    # sub, div = self.norm_factors.get(column, (0, 1))
+    # df = df * div + sub
+    # return df
+    return np.power(df, 10)
 
   def evaluate(self, panda_dataset, predictions):
     predictions = self.denormalize(predictions)
