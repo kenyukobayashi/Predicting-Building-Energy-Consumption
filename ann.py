@@ -51,7 +51,7 @@ class Ann:
 
 
 if __name__ == '__main__':
-    dataset = pd.read_csv('data/features.csv').set_index('EGID')
+    dataset = pd.read_csv('data/sanitized_complete.csv').set_index('EGID')
     dataset.dropna(inplace=True)
 
     for data in CrossValidation(dataset, 4):

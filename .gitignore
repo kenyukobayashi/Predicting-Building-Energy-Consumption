@@ -105,3 +105,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+/data/hourly_predictions.csv
+/data/hourly_predictions_flatten.csv
+/data/jonctionnofloors.xml
+/data/jonctionnofloors_TH.tsv
