@@ -15,11 +15,11 @@ class DataPreProcessor:
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
-    print("Train log distribution:")
-    print(np.log10(train['heating']).astype(int).value_counts())
-
-    print("Test log distribution:")
-    print(np.log10(test['heating']).astype(int).value_counts())
+    # print("Train log distribution:")
+    # print(np.log10(train['heating']).astype(int).value_counts())
+    #
+    # print("Test log distribution:")
+    # print(np.log10(test['heating']).astype(int).value_counts())
 
     self.compute_normal(train, columns_to_normalize)
     self.train = PandaDataset(self.normalize(train))
@@ -49,14 +49,15 @@ class DataPreProcessor:
     # sub, div = self.norm_factors.get(column, (0, 1))
     # df = df * div + sub
     # return df
-    return np.power(df, 10)
+    return np.power(10, df)
 
   def evaluate(self, panda_dataset, predictions):
     predictions = self.denormalize(predictions)
     expected = self.denormalize(panda_dataset.labels_t.numpy())
 
     diff = predictions - expected
-    rel_diff = (np.abs(diff) / expected).mean()
+    rel_diff = np.abs(np.log(predictions / expected)).mean()
+    # rel_diff = (np.abs(diff) / expected).mean()
     mse = np.square(diff).mean()
     nb_above = 1.0 * np.sum(predictions > expected) / len(diff)
     return rel_diff, nb_above, mse
