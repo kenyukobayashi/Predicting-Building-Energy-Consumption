@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, Dataset
 
 
 class DataPreProcessor:
-  def __init__(self, df, split=0.75, columns_to_normalize=None):
+  def __init__(self, df, split=0.75, columns_to_normalize=None, use_log=True):
     if isinstance(split, float):
       indices = np.random.permutation(df.shape[0])
       split = int(df.shape[0] * split)
@@ -15,21 +15,15 @@ class DataPreProcessor:
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
-    # print("Train log distribution:")
-    # print(np.log10(train['heating']).astype(int).value_counts())
-    #
-    # print("Test log distribution:")
-    # print(np.log10(test['heating']).astype(int).value_counts())
-
     self.compute_normal(train, columns_to_normalize)
     self.train = PandaDataset(self.normalize(train))
     self.train_loader = DataLoader(self.train, batch_size=16, shuffle=True)
     self.test = PandaDataset(self.normalize(test))
     self.test_loader = DataLoader(self.test, batch_size=1, shuffle=True)
+    self.use_log = use_log
 
   def compute_normal(self, tr, columns_to_normalize):
     if columns_to_normalize is None:
-      # columns_to_normalize = ['heating', 'cooling', 'GASTW', 'GAREA']
       columns_to_normalize = ['GASTW', 'GAREA']
     self.norm_factors = {'heating': (0, 1e8)}
     for c in columns_to_normalize:
@@ -39,17 +33,19 @@ class DataPreProcessor:
 
   def normalize(self, df):
     for c, (sub, div) in self.norm_factors.items():
-      if c == 'heating':
+      if c == 'heating' and self.use_log:
         df[c] = np.log10(df[c])
       else:
         df[c] = (df[c] - sub) / div
     return df
 
   def denormalize(self, df, column='heating'):
-    # sub, div = self.norm_factors.get(column, (0, 1))
-    # df = df * div + sub
-    # return df
-    return np.power(10, df)
+    if column == 'heating' and self.use_log:
+      return np.power(10, df)
+    else:
+      sub, div = self.norm_factors.get(column, (0, 1))
+      df = df * div + sub
+      return df
 
   def evaluate(self, panda_dataset, predictions):
     predictions = self.denormalize(predictions)

@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
       losses = []
       relative_diff = []
-      for j in range(2000):
+      for j in range(4000):
         avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te = ann.do_epoch(j % 100 == 0)
         if j % 100 == 0:
           # losses.append((loss, loss_te))

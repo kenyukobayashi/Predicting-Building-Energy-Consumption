@@ -66,45 +66,45 @@ class HourlyPreprocessor:
     self.train, self.test = dataset.split_buildings(tr, te)
     self.compute_normal()
     self.normalize()
-    self.train_loader = DataLoader(self.train, batch_size=256, shuffle=True)
+    self.train_loader = DataLoader(self.train, batch_size=16, shuffle=True)
     self.test_loader = DataLoader(self.train, batch_size=256, shuffle=True)
 
     # labels = np.log10(labels)
 
   def compute_normal(self):
-    columns_to_normalize = ['GASTW', 'GAREA', 'G_Dh', 'G_Bn', 'Ta', 'FF', 'DD']
+    columns_to_normalize = ['GASTW', 'GAREA'] + useful_weather
     self.norm_factors = {}
     for col in columns_to_normalize:
       mini, maxi = self.train.get_min_max(col)
       self.norm_factors[col] = (mini, maxi - mini)
 
   def normalize(self):
-    self.norm_factors['labels'] = (0, 10_000)
+    self.norm_factors['labels'] = (0, 100_000)
     functions = {col: lambda x: (x - subi) / divi for col, (subi, divi) in self.norm_factors.items()}
-    # functions['labels'] = lambda x: np.log(x + 1) # if x != 0 else 0
+    functions['labels'] = lambda x: np.log10(x + 1) # if x != 0 else 0
     self.train.apply_to_each(functions)
     self.test.apply_to_each(functions)
 
   def denormalize(self, col, x):
     if col == 'labels':
-      return x * 1000 #np.exp(x) - 1 # if x == 0 else np.exp(x)
+      return np.power(10, x) - 1 # if x == 0 else np.exp(x)
     if col in self.norm_factors:
       subi, divi = self.norm_factors[col]
       return x * divi + subi
     return x
 
-  def evaluate(self, model, nb_sample=100, train=True):
+  def evaluate(self, model, nb_sample=10, train=True):
     rel_diff = 0
     c = 0
     for feat, target in (self.train_loader if train else self.test_loader):
-      predictions = self.denormalize('labels', model(feat).detach().numpy())
       expected = self.denormalize('labels', target.detach().numpy())
+      predictions = self.denormalize('labels', model(feat).detach().numpy())[expected != 0]
+      expected = expected[expected != 0]
       diff = predictions - expected
-      rel_diff += (np.abs(diff)).mean()
+      rel_diff += (np.abs(diff) / expected).mean()
       c += 1
       if c == nb_sample:
         return rel_diff / nb_sample
-    return rel_diff / nb_sample
 
 
 class Ann:
@@ -112,34 +112,51 @@ class Ann:
     self.model = nn.Sequential(
       nn.Linear(n_features, n_hidden),
       nn.LeakyReLU(),
+      nn.Linear(n_hidden, n_hidden),
+      nn.LeakyReLU(),
       nn.Linear(n_hidden, n_output),
       nn.LeakyReLU()
     )
     self.data = data
     self.criterionH = nn.MSELoss()
-    self.optimizer = optim.Adam(self.model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-8)
+    self.optimizer = optim.Adam(self.model.parameters(), lr=0.000005, betas=(0.9, 0.999), eps=1e-8)
     # self.optimizer = optim.SGD(self.model.parameters(), lr=0.010)
     # self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', factor=0.1, patience=1000, cooldown=5000, verbose=True)
 
   def do_epoch(self, evaluate=True):
     i = 0
     losses = 0
+    mses = 0
+    abv = 0
     for feat, target in self.data.train_loader:
       self.optimizer.zero_grad()
       out = self.model(feat)
       loss = self.criterionH(out, target)
       loss.backward()
       self.optimizer.step()
-      print('.', end='', flush=True)
+
+      # print('.', end='', flush=True)
       i += 1
-      t = target.detach().numpy()
-      o = out.detach().numpy()
+      t = self.data.denormalize("labels", target.detach().numpy())
+      o = self.data.denormalize("labels", out.detach().numpy())
       o2 = o[t != 0]
       t2 = t[t != 0]
-      losses += (np.abs((t2 - o2) / t2).sum() + len(np.where(o[t == 0] > 100))) / len(t)
-      if i % 10 == 0:
-        print(losses / 10)
+      losses += np.abs((t2 - o2) / t2).mean()
+      mses += loss.data.item()
+      t3 = target.detach().numpy()
+      o3 = out.detach().numpy()[t3 != 0]
+      t3 = t3[t3 != 0]
+      abv += len(np.where(o3 > t3)[0]) / float(len(t3))
+
+      if i % 100 == 0:
+        print(losses / 100, '\t', mses / 100, '\t', abv / 100)
+        # print(np.where(o3 > t3))
+        # print(t.flatten().tolist())
+        # print(o.flatten().tolist())
         losses = 0
+        mses = 0
+        abv = 0
+        # return
         # print(self.data.evaluate(self.model))
 
     # if evaluate:
@@ -156,14 +173,25 @@ class Ann:
     return self.optimizer.param_groups[0]['lr']
 
 
+def summer(df):
+  start_summer = pd.Timestamp(year=2017, month=3, day=15)
+  end_summer = pd.Timestamp(year=2017, month=11, day=15)
+  df = df[start_summer < df.index.map(pd.Timestamp)]
+  return df[df.index.map(pd.Timestamp) < end_summer].index
+
 
 if __name__ == '__main__':
+  useful_weather = ['G_Dh_mean', 'G_Bn_mean', 'G_Dh_var', 'G_Bn_var', 'Ta_mean', 'Ta_var', 'Ta_min',
+                    'FF_mean', 'FF_var', 'h_day']
   buildings = pd.read_csv('data/sanitized_complete.csv')\
     .set_index('EGID')\
     .drop(columns=['heating', 'cooling'])
-  forecast = pd.read_csv('data/weather_forecast.csv').set_index('timestamp')
-  predictions = pd.read_csv('data/hourly_predictions.csv').set_index('timestamp')
+  forecast = pd.read_csv('data/daily_forecast.csv').set_index('timestamp')[useful_weather]
+  summer = summer(forecast)
 
+  forecast.drop(summer, inplace=True)
+  print(forecast)
+  predictions = pd.read_csv('data/daily_predictions.csv').set_index('timestamp').drop(summer)
   preprocessor = HourlyPreprocessor(
     dataset=HourlyDataset(
       building_features=buildings,
@@ -173,16 +201,17 @@ if __name__ == '__main__':
     split=0.80
   )
   print('loaded')
+  print(preprocessor.train.nb_features)
   ann = Ann(preprocessor,
             n_features=preprocessor.train.nb_features,
             n_output=1,
-            n_hidden=6)
+            n_hidden=20)
 
   losses = []
   relative_diff = []
-  for j in range(2000):
+  for j in range(100):
     ann.do_epoch(j % 100 == 0)
-    print(j)
+    print(j, preprocessor.evaluate(ann.model, train=False))
 
   # load_forecast()
   # print(pd.Timestamp(year=2017, month=1, day=1, hour=0) + pd.Timedelta(hours=1))

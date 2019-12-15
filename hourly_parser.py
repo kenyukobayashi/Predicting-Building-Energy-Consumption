@@ -25,13 +25,15 @@ def pass_to_daily():
 
   df2 = df2.drop(['h', 'timestamp'], axis=1)
   header = df2.columns.tolist()
+  df2['h_day'] = df2['G_Dh'].groupby(np.arange(len(df2)) // 24).apply(np.count_nonzero)
   for head in header:
     df2[head + '_min'] = df2[head].groupby(np.arange(len(df2)) // 24).min()
     df2[head + '_mean'] = df2[head].groupby(np.arange(len(df2)) // 24).mean()
-    df2[head + '_var'] = df2[head].groupby(np.arange(len(df2)) // 24).var()
+    df2[head + '_var'] = df2[head].groupby(np.arange(len(df2)) // 24).std()
     df2 = df2.drop(head, axis=1)
   df2 = df2.dropna()
   df2['timestamp'] = df2.index.map(lambda t: pd.Timestamp(year=2017, month=1, day=1) + pd.Timedelta(days=t))
+
   df2.set_index('timestamp').to_csv('data/daily_forecast.csv')
 
 
