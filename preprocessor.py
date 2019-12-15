@@ -15,12 +15,12 @@ class DataPreProcessor:
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
+    self.use_log = use_log
     self.compute_normal(train, columns_to_normalize)
     self.train = PandaDataset(self.normalize(train))
     self.train_loader = DataLoader(self.train, batch_size=16, shuffle=True)
     self.test = PandaDataset(self.normalize(test))
     self.test_loader = DataLoader(self.test, batch_size=1, shuffle=True)
-    self.use_log = use_log
 
   def compute_normal(self, tr, columns_to_normalize):
     if columns_to_normalize is None:
