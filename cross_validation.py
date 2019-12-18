@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import multiprocessing
 
+from hourlyData import HourlyPreprocessor
 from preprocessor import DataPreProcessor
 
 
@@ -14,13 +16,6 @@ class CrossValidation:
 
   def __iter__(self):
     for ind in range(len(self.indices)):
-      tr_ind = np.delete(self.indices, ind).flatten()
+      tr_ind = np.delete(self.indices, ind, axis=0).flatten()
       te_ind = self.indices[ind].flatten()
       yield DataPreProcessor(self.df, split=(tr_ind, te_ind))
-
-
-if __name__ == '__main__':
-  dataset = pd.read_csv('data/features.csv').set_index('EGID')
-  dataset.dropna(inplace=True)
-  for i in CrossValidation(dataset.iloc[:4], 4):
-    print(i)

@@ -15,6 +15,11 @@ class DataPreProcessor:
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
+    # print("Train log distribution:")
+    # print(np.log10(train['heating']).astype(int).value_counts())
+    #
+    # print("Test log distribution:")
+    # print(np.log10(test['heating']).astype(int).value_counts())
     self.use_log = use_log
     self.compute_normal(train, columns_to_normalize)
     self.train = PandaDataset(self.normalize(train))
@@ -25,7 +30,7 @@ class DataPreProcessor:
   def compute_normal(self, tr, columns_to_normalize):
     if columns_to_normalize is None:
       columns_to_normalize = ['GASTW', 'GAREA']
-    self.norm_factors = {'heating': (0, 1e8)}
+    self.norm_factors = {'heating': (0, 1)}
     for c in columns_to_normalize:
       col = tr[c]
       # self.norm_factors[c] = (0, col.max())

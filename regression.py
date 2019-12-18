@@ -45,6 +45,15 @@ def build_poly(x, degree):
   return poly
 
 
+def run_training_least_square(data: DataPreProcessor):
+  x_test = data.test.features.to_numpy()
+  x_train = data.train.features.to_numpy()
+  y_train = data.train.labels.to_numpy()
+  weight = least_squares(y_train, x_train)
+  rel_dif_test, nb_above,mse = data.evaluate(data.test, x_test.dot(weight))
+  rel_dif_train, nb_above, mse = data.evaluate(data.train, x_train.dot(weight))
+  return rel_dif_train, rel_dif_test
+
 if __name__ == '__main__':
   dataset = pd.read_csv('data/features.csv').set_index('EGID')
   dataset.dropna(inplace=True)
