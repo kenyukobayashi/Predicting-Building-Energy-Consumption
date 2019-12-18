@@ -105,7 +105,7 @@ def grid_search(dataset):
                   'gamma': ['scale'],
                   'degree': [5, 6, 7],
                   'coef0': np.arange(0.59, 0.61, 0.01),
-                  'epsilon': np.arange(0.1,0.12,0.001),
+                  'epsilon': np.arange(0.01,0.12,0.01),
                   'C': np.arange(1,1.2,0.01),
                   'shrinking': [True],
                   'tol': np.arange(0.001,0.01,0.001)
@@ -134,17 +134,52 @@ def run_training(data : DataPreProcessor):
     avg_diff_te, _, _ = data.evaluate(data.test, test_predictions)
     return avg_diff, avg_diff_te
 
+def make_graphs(dataset):
+    kernel_types = ['linear', 'poly', 'rbf', 'sigmoid']
+    te_errors = []
+    for kernel_type in kernel_types :
+        ln_q_te_errs = []
+        for data in CrossValidation(dataset, 4):
+            svr = Svr(data, kernel_type, 'scale', 0.001, 0.11, 5, 0.61, 1.19, True)
+
+            # Retrieving the different sets
+            train_x = svr.data.train.features.to_numpy()
+            train_y = svr.data.train.labels.to_numpy().ravel()
+            test_x = svr.data.test.features.to_numpy()
+
+            # Fitting the model
+            svr.fit(train_x, train_y)
+
+            # Computing the test prediction and test ln q error
+            test_predictions = np.array([svr.predict(x) for x in test_x])
+            ln_q_te_err, _, _ = data.evaluate(data.test, test_predictions)
+
+            # Appending the ln q error to the list
+            ln_q_te_errs.append(ln_q_te_err)
+
+        # Appending the ln q error for the given kernel type to the errors list
+        sum_er = 0
+        for e in ln_q_te_errs :
+            sum_er += e
+        te_errors.append(sum_er/4)
+
+    # Plotting
+    plt.xlabel("Kernel Type")
+    plt.ylabel("log Ln Q error")
+    plt.grid(True)
+    plt.plot(kernel_types, np.log(te_errors), color='blue', marker='o',linewidth=1, markersize=4)
+    plt.show()
 
 if __name__ == '__main__':
     # Importing the dataset
     dataset = pd.read_csv('data/sanitized_complete.csv').set_index('EGID')
     dataset.dropna(inplace=True)
 
-    #for data in CrossValidation(dataset, 4):
-    #    print(run_training(data))
-
     # Grid search
     #grid_search(dataset)
+
+    # Make a graph
+    # make_graphs(dataset)
 
     # Best parameters
     tolerance = 0.001
