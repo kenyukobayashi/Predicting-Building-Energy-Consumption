@@ -78,6 +78,8 @@ def grid_search(dataset):
     # features = (data.train.features + data.test.features).to_numpy()
     # labels = (data.train.labels + data.test.labels).to_numpy().ravel()
 
+    """
+    # First gridsearch
     # Parameters of SVR
     kernel_types = ['linear', 'poly', 'rbf', 'sigmoid']  # Specifies the kernel type to be used
     gammas = ['scale', 'auto']  # Kernel coefficient. Use if kernel_type = ‘rbf’, ‘poly’ or ‘sigmoid’
@@ -86,10 +88,7 @@ def grid_search(dataset):
     epsilons = np.arange(0.05, 0.21, 0.02)  # Epsilon in the epsilon-SVR model
     cs = np.arange(0.1, 3.1, 0.5)  # regularization parameter
     shrinkings = [True, False]  # whether to use the shrinking heuristic
-    # tolerances = np.arange(0.0001,0.002,0.0001)
-
-
-    """
+    tolerances = np.arange(0.0001,0.002,0.0001)
     parameters = {'kernel': kernel_types,
                   'gamma': gammas,
                   'degree': degrees,
@@ -117,11 +116,34 @@ def grid_search(dataset):
     clf.fit(features, labels)
     print(clf.best_params_)
 
+def run_training(data : DataPreProcessor):
+    svr = Svr(data, 'poly', 'scale', 0.001, 0.11, 5, 0.61, 1.19, True)
+    # Retrieving the different sets
+    train_x = svr.data.train.features.to_numpy()
+    train_y = svr.data.train.labels.to_numpy().ravel()
+    test_x = svr.data.test.features.to_numpy()
+    # test_y = svr.data.test.labels
+
+    # Fitting the model
+    svr.fit(train_x, train_y)
+
+    # Computing the predictions and losses
+    train_predictions = np.array([svr.predict(x) for x in train_x])
+    test_predictions = np.array([svr.predict(x) for x in test_x])
+    avg_diff, _, _ = data.evaluate(data.train, train_predictions)
+    avg_diff_te, _, _ = data.evaluate(data.test, test_predictions)
+    return avg_diff, avg_diff_te
+
 
 if __name__ == '__main__':
     # Importing the dataset
     dataset = pd.read_csv('data/sanitized_complete.csv').set_index('EGID')
     dataset.dropna(inplace=True)
+
+    #for data in CrossValidation(dataset, 4):
+    #    print(run_training(data))
+
+    # Grid search
     #grid_search(dataset)
 
     # Best parameters
@@ -140,7 +162,7 @@ if __name__ == '__main__':
                                     degree, coef0, c, shrinking)
 
     print("\nWith 4-fold Cross Validation : \n"
-          "Relative average error on train: {e:.2f}%, on test: {te:.2f}%. \n"
+          "ln Q error on train: {e:.2f}%, on test: {te:.2f}%. \n"
           "Training avg loss: {l} \n"
           "Training above target: {a:.2f}%"
           .format(e=mean_avg_diff * 100, te=100 * mean_avg_diff_te,
