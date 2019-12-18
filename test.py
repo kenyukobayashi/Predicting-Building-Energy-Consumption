@@ -30,13 +30,44 @@ if __name__ == '__main__':
 
   # print(CrossValidation(dataset, 4).para(f))
 
-  plt.errorbar(neurons[:-1], te_losses[:-1], te_stds[:-1], marker=".", color='b', label='Testing set', capsize=3)
-  plt.errorbar(neurons[:-1], tr_losses[:-1], tr_stds[:-1], marker=".", color='r', label='Training set', capsize=3)
-  plt.xlabel("Number of neurons in the hidden layer")
-  # plt.xscale('log')
-  plt.ylabel("Ln Q error")
-  # plt.title("F-score for polynomial degree and regularization factor")
-  plt.legend(loc=1)
-  plt.grid(True)
-  plt.savefig("hidden_layer_n", bbox_inches='tight')
+  # plt.errorbar(neurons[:-1], te_losses[:-1], te_stds[:-1], marker=".", color='b', label='Testing set', capsize=3)
+  # plt.errorbar(neurons[:-1], tr_losses[:-1], tr_stds[:-1], marker=".", color='r', label='Training set', capsize=3)
+  # plt.xlabel("Number of neurons in the hidden layer")
+  # # plt.xscale('log')
+  # plt.ylabel("Ln Q error")
+  # # plt.title("F-score for polynomial degree and regularization factor")
+  # plt.legend(loc=1)
+  # plt.grid(True)
+  # plt.savefig("hidden_layer_n", bbox_inches='tight')
+  # plt.show()
+
+  # reg = [0.6223169021680509, 0.6200601374570447, 0.6271159116556505, 0.6248932991890738]
+  # svr = [0.4621063781979264, 0.46080275448719993, 0.5235617838991972, 0.4613175945126815]
+  # ann = [0.366885705644607, 0.5475596410593129, 0.3717808349597753, 0.566230628035038]
+
+  reg = [0.4668570652106104, 0.41650950517381685, 0.49228870203956576, 0.38552487038378314, 0.3490672588597832,
+         0.44864479290696807, 0.4731613955147661, 0.4499156317200034, 0.4413386990759393, 0.5114482735059528,
+         0.4168468311926959, 0.38994341726746223, 0.3111961733471609, 0.30750754515254597, 0.5189025489632071,
+         0.561659550093437]
+  svr = [0.29903574062754773, 0.32091980359170336, 0.3866166793765042, 0.2682663992130458, 0.2649593399472323,
+         0.3045054692885195, 0.3620490703571802, 0.3307961019970368, 0.3715070782774328, 0.4185783611143628,
+         0.3584252219546176, 0.31438886945113875, 0.25287509390611035, 0.23529846721571573, 0.32529739243213607,
+         0.4242451103320543]
+  ann = [0.2779298, 0.28635922, 0.25692606, 0.3077921, 0.20498772, 0.21251123, 0.30227277, 0.23670964, 0.32526824,
+         0.27211908,
+         0.30783623, 0.30908892, 0.24400726, 0.27530214, 0.27747434, 0.26191607]
+
+  al = [reg, svr, ann]
+  al.reverse()
+  plt.figure()
+  plt.hold = True
+  labels = ['Least\nSquare\n(baseline)', 'SVR', 'ANN']
+  labels.reverse()
+  plt.boxplot(al, vert=False, labels=labels)
+  plt.xlabel('Ln Q error on test')
+  # plt.xlim(xmin=0)
+  fig = plt.gcf()
+  fig.set_size_inches(8, 4)
+  fig.savefig('comp.png', bbox_inches='tight')
+  # plt.savefig("comp", bbox_inches='tight')
   plt.show()

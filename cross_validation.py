@@ -16,6 +16,6 @@ class CrossValidation:
 
   def __iter__(self):
     for ind in range(len(self.indices)):
-      tr_ind = np.delete(self.indices, ind, axis=0).flatten()
+      tr_ind = np.delete(self.indices, ind).flatten()
       te_ind = self.indices[ind].flatten()
       yield DataPreProcessor(self.df, split=(tr_ind, te_ind))

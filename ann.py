@@ -42,23 +42,23 @@ class Ann:
     return self.optimizer.param_groups[0]['lr']
 
 
-def fabc(data):
+def run_ann(data: DataPreProcessor):
   ann = Ann(data,
-            n_features=dataset.iloc[1:2].drop(columns=['heating', 'cooling']).shape[1],
+            n_features=data.train.features.shape[1],
             n_output=1,
-            n_hidden=nh)
+            n_hidden=8)
 
-  for j in range(8000):
-    avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te = ann.do_epoch( j % 1000 == 0)
-    if j % 1000 == 0:
+  for j in range(5000):
+    avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te = ann.do_epoch(j % 1000 == 0)
+    # if j % 1000 == 0:
       # losses.append((loss, loss_te))
       # relative_diff.append((avg_diff, avg_diff_te))
-      print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. "
-            "LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
-            .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te,
-                    l=loss, lr=ann.get_lr(), a=nb_above * 100.0))
+      # print("Step {j}: relative average error on train: {e:.2f}%, on test: {te:.2f}%. "
+      #       "LR={lr:.2} Training avg loss: {l}, above target: {a:.2f}%"
+      #       .format(j=j, e=avg_diff * 100, te=100 * avg_diff_te,
+      #               l=loss, lr=ann.get_lr(), a=nb_above * 100.0))
   avg_diff, _, _, avg_diff_te, _, _ = ann.do_epoch(True)
-  return (avg_diff, avg_diff_te)
+  return avg_diff, avg_diff_te
 
 
 if __name__ == '__main__':
