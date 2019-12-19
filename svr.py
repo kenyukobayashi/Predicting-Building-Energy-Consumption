@@ -7,6 +7,7 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 
 
+# Support Vector Regression machine
 class Svr:
     def __init__(self, data: DataPreProcessor, kernel_type, gamma,
                  tolerance, epsilon, degree, coef0, c, shrinking):
@@ -14,12 +15,15 @@ class Svr:
         self.regressor = SVR(kernel=kernel_type, gamma=gamma, tol=tolerance, epsilon=epsilon,
                              degree=degree, coef0=coef0, C=c, shrinking=shrinking)
 
+    # Fits the SVR
     def fit(self, train_x, train_y):
         self.regressor.fit(train_x, train_y)
 
+    # Makes a prediction for an input x
     def predict(self, x):
         return self.regressor.predict([x])
 
+    # Trains the model and returns the different losses
     def training(self, data: DataPreProcessor):
         # Retrieving the different sets
         train_x = self.data.train.features.to_numpy()
@@ -38,6 +42,7 @@ class Svr:
         return avg_diff, nb_above, loss, avg_diff_te, nb_above_te, loss_te
 
 
+# Trains the model and returns the different losses with a cross validation process
 def cross_validation_training(dataset, kernel_type, gamma, tolerance, epsilon,
                               degree, coef0, c, shrinking):
     losses = []
@@ -61,6 +66,7 @@ def cross_validation_training(dataset, kernel_type, gamma, tolerance, epsilon,
     return mean_loss, mean_loss_te, mean_avg_diff, mean_avg_diff_te, mean_nb_above, mean_nb_above_te
 
 
+# Computes the mean in a list of length k. Used for the cross validation process.
 def compute_mean(l, k):  # def compute_mean(l:list[tuple[float, float]], k:list[tuple[float, float]]):
     mean_train = 0
     mean_te = 0
@@ -70,16 +76,12 @@ def compute_mean(l, k):  # def compute_mean(l:list[tuple[float, float]], k:list[
     return mean_train / k, mean_te / k
 
 
+# Grid search algorithm to tune the hyper parameters
 def grid_search(dataset):
-    # Load the data without splitting it for GridsearchCV
     data = DataPreProcessor(dataset)
     features = data.train.features.to_numpy()
     labels = data.train.labels.to_numpy().ravel()
-    # features = (data.train.features + data.test.features).to_numpy()
-    # labels = (data.train.labels + data.test.labels).to_numpy().ravel()
 
-    """
-    # First gridsearch
     # Parameters of SVR
     kernel_types = ['linear', 'poly', 'rbf', 'sigmoid']  # Specifies the kernel type to be used
     gammas = ['scale', 'auto']  # Kernel coefficient. Use if kernel_type = ‘rbf’, ‘poly’ or ‘sigmoid’
@@ -96,10 +98,10 @@ def grid_search(dataset):
                   'epsilon': epsilons,
                   'C': cs,
                   'shrinking': shrinkings,
-                  #'tol': tolerances
+                  'tol': tolerances
                   }
-    """
 
+    """
     # Second gridsearch
     parameters = {'kernel': ['poly'],
                   'gamma': ['scale'],
@@ -110,12 +112,15 @@ def grid_search(dataset):
                   'shrinking': [True],
                   'tol': np.arange(0.001,0.01,0.001)
                   }
+    """
 
     svr = SVR()
     clf = GridSearchCV(svr, parameters)
     clf.fit(features, labels)
     print(clf.best_params_)
 
+
+# Runs the training and returns the losses for a DataPreProcessor input
 def run_training(data : DataPreProcessor):
     svr = Svr(data, 'poly', 'scale', 0.001, 0.11, 5, 0.61, 1.19, True)
     # Retrieving the different sets
@@ -134,7 +139,9 @@ def run_training(data : DataPreProcessor):
     avg_diff_te, _, _ = data.evaluate(data.test, test_predictions)
     return avg_diff, avg_diff_te
 
-def make_graphs(dataset):
+
+# Makes a graph of the lnQ error depending on the kernel type
+def make_graph(dataset):
     kernel_types = ['linear', 'poly', 'rbf', 'sigmoid']
     te_errors = []
     for kernel_type in kernel_types :
@@ -169,36 +176,3 @@ def make_graphs(dataset):
     plt.grid(True)
     plt.plot(kernel_types, np.log(te_errors), color='blue', marker='o',linewidth=1, markersize=4)
     plt.show()
-
-if __name__ == '__main__':
-    # Importing the dataset
-    dataset = pd.read_csv('data/sanitized_complete.csv').set_index('EGID')
-    dataset.dropna(inplace=True)
-
-    # Grid search
-    #grid_search(dataset)
-
-    # Make a graph
-    # make_graphs(dataset)
-
-    # Best parameters
-    tolerance = 0.001
-    kernel_type = 'poly'
-    gamma = 'scale'
-    degree = 5
-    coef0 = 0.61
-    epsilon = 0.11
-    c = 1.19
-    shrinking = True
-
-    # Training
-    mean_loss, mean_loss_te, mean_avg_diff, mean_avg_diff_te, mean_nb_above, mean_nb_above_te \
-        = cross_validation_training(dataset, kernel_type, gamma, tolerance, epsilon,
-                                    degree, coef0, c, shrinking)
-
-    print("\nWith 4-fold Cross Validation : \n"
-          "ln Q error on train: {e:.2f}%, on test: {te:.2f}%. \n"
-          "Training avg loss: {l} \n"
-          "Training above target: {a:.2f}%"
-          .format(e=mean_avg_diff * 100, te=100 * mean_avg_diff_te,
-                  l=mean_loss, a=mean_nb_above * 100.0))
