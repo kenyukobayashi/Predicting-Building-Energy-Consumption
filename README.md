@@ -1,4 +1,4 @@
-<p align="center"> # Machine Learning Project : Predicting Energy Building Consumption </p>
+<p align="center"> <h1> Machine Learning Project : Predicting Energy Building Consumption </h1> </p>
 
 
 ## Libraries required
