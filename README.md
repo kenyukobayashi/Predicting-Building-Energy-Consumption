@@ -7,7 +7,8 @@ Kobayashi Kenyu
 
 Renauld Paul
 
-## Libraries required
+## Requirements
+Python 3.7 and pip3 are required to run this project. In addition, you also need the following libraries:
 * Numpy
 * Pandas
 * Pytorch
