@@ -1,4 +1,4 @@
-# Machine Learning Project : Predicting Energy Building Consumption
+<p align="center"> # Machine Learning Project : Predicting Energy Building Consumption </p>
 
 
 ## Libraries required
@@ -72,7 +72,7 @@ allowing a K-fold Cross Validation process to be done on the dataset :
 Specify the ratio with the *k* parameter in the constructor.
 
 3. #### correlations.py :
-Computes the pair wise correlations on the building features and the weather forecast features.
+Computes the pair wise correlations on the building features and the weather forecast features.<br/>
 Presents the results in the form of heatmaps.
 
 4. #### regression.py :
