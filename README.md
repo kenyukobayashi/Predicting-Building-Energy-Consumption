@@ -43,8 +43,8 @@ The daily predictions made by our ANN model :
 The run.py file does the whole job :<br/>
 Usage: `python3 run.py [regression|svr|ann|daily]`<br/>
 Runs the models with 4-fold cross validation:<br/>
-* for 'regression', 'svr' or 'ann', runs the annual prediction for the regression (least square, baseline), svr or the neural network.
-* for 'daily', runs the neural network for daily prediction.<br/>
+* For 'regression', 'svr' or 'ann', runs the annual prediction for the regression (least square, baseline), svr or the neural network.
+* For 'daily', runs the neural network for daily prediction.<br/>
 Note that the ANNs can take a long time to run, so their progresses are printed during learning.<br/>
 At the end, prints the average Ln Q error on testing and the standard deviation.
 
