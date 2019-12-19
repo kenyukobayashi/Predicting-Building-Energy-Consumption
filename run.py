@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
 
-import svr
-import regression
-import ann
+from annual import ann, regression, svr
 from daily.ann import run_daily_ann
-from cross_validation import CrossValidation
+from annual.cross_validation import CrossValidation
 from sys import argv
 
 BUILDINGS_FILE = 'data/sanitized_complete.csv'

@@ -1,4 +1,4 @@
-# Machine Learning Project : Predicting Building Energy Consumption
+<h1 align="center"> Machine Learning Project : Predicting Building Energy Consumption </h1>
 
 
 ## Libraries required
@@ -10,7 +10,7 @@
 
 ## Data files
 
-#### Buildings' dataset : *sanitized_complete.csv*
+1. #### Buildings' dataset : *sanitized_complete.csv*
 This dataset contains every buildings defined by their associated heating/cooling energy demands and their features :
 * EGID : The building id.
 * heating : The yearly energy demand for heating, in Wh.
@@ -22,7 +22,7 @@ This dataset contains every buildings defined by their associated heating/coolin
 * xx-yy : Boolean which specifies whether the building was built between 19xx and 19yy or not.
 * a2000 : Boolean which specifies whether the building was built after 2000 or not.
 
-#### Forecasts' dataset : *daily_forecast.csv*
+2. #### Forecasts' dataset : *daily_forecast.csv*
 This dataset contains daily weather forecasts defined by the day and their different features :
 * Timestamp : The day in the yyyy-mm-dd format.
 * h_day : The hour of the day
@@ -32,54 +32,54 @@ This dataset contains daily weather forecasts defined by the day and their diffe
 * FF_min/mean/var :
 * DD_min/mean/var :
 
-#### Daily predictions data : *daily_predictions.csv*
+3. #### Daily predictions data : *daily_predictions.csv*
 The daily predictions made by our ANN model :
-* Timestamp : The day in the yyyy-mm-dd format.
+* Timestamp : The day in the *yyyy-mm-dd* format.
 * xxxxxxx : The EGID of the building (building id), for which its heating demands are given for each timestamp.
 
 
 ## Running
 
-The run.py file does the whole job :
-Usage: `python3 run.py [regression|svr|ann|daily]`
-Runs the models with 4-fold cross validation:
-    - for 'regression', 'svr' or 'ann', runs the annual prediction for the regression (least square, baseline), svr or the neural network.
-    - for 'daily', runs the neural network for daily prediction.
-Note that the ANNs can take a long time to run, so their progresses are printed during learning.
+The run.py file does the whole job :<br/>
+Usage: `python3 run.py [regression|svr|ann|daily]`<br/>
+Runs the models with 4-fold cross validation:<br/>
+* For 'regression', 'svr' or 'ann', runs the annual prediction for the regression (least square, baseline), svr or the neural network.
+* For 'daily', runs the neural network for daily prediction.<br/>
+Note that the ANNs can take a long time to run, so their progresses are printed during learning.<br/>
 At the end, prints the average Ln Q error on testing and the standard deviation.
 
 
 ## Python files
 
-1. preprocessor.py :
-*Class* : **DataPreProcessor**
+1. #### preprocessor.py :
+*Class* : **DataPreProcessor**<br/>
 Given a dataset in csv format, it allows to :
 * Split data :
-Specify the ratio with the *split* parameter in the constructor.
-The .train/test attribute returns a Panda Dataframe instance of the data,
-while the .train/test_loader attribute returns a DataLoader instance of the data.
+Specify the ratio with the *split* parameter in the constructor.<br/>
+The *.train/test* attribute returns a Panda Dataframe instance of the data,
+while the *.train/test_loader* attribute returns a DataLoader instance of the data.
 * Normalize data :
-Specify the columns to normalize with the *columns_to_normalize* parameter in the constructor.
+Specify the columns to normalize with the *columns_to_normalize* parameter in the constructor.<br/>
 Specify the use of the logarithm for the normalization with *use_log* parameter in the constructor.
 * Evaluate data :
 Given a dataset and associated predictions made by a model, the *evaluate* method computes different losses of the predictions.
 
-2. cross_validation.py :
-*Class* : **CrossValidation**
+2. #### cross_validation.py :
+*Class* : **CrossValidation**<br/>
 Given a dataset in a csv format, it returns an array of k DataPreProcessor instances,
 allowing a K-fold Cross Validation process to be done on the dataset :
 * Split ratio :
 Specify the ratio with the *k* parameter in the constructor.
 
-3. correlations.py :
-Computes the pair wise correlations on the building features and the weather forecast features.
+3. #### correlations.py :
+Computes the pair wise correlations on the building features and the weather forecast features.<br/>
 Presents the results in the form of heatmaps.
 
-4. regression.py :
+4. #### regression.py :
 Implements Ridge Regression and Least Squares method.
 
-5. svr.py :
-*Class* : **Svr**
+5. #### svr.py :
+*Class* : **Svr**<br/>
 Implements Support Vector Regression method, with the following parameters to be specified in the constructor :
 * data : DataPreProcessor instance of the dataset : DataPreProcessor
 * kernel_type : Specifies the kernel type to be used : string
@@ -93,8 +93,8 @@ Implements Support Vector Regression method, with the following parameters to be
 Note that these hyper parameters have default values to be assigned if not specified.
 The best hyper parameters given by the grid-search algorithm are specified in the run_training function.
 
-6. ann.py :
-*Class* : **Ann**
+6. #### ann.py :
+*Class* : **Ann**<br/>
 Implements Artificial Neural Networks method, with the following parameters to be specified in the constructor :
 * data :  DataPreProcessor instance of the dataset, DataPreProcessor
 * n_features : Number of nodes on a layer : int

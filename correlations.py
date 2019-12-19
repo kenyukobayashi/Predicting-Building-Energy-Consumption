@@ -2,10 +2,13 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Plots two heatmaps :
-# - one for the building features
-# - another one for the weather features
+
 def plot_building_and_weather_correlations():
+    """
+    Plots two heatmaps :
+    - one for the building features
+    - another one for the weather features
+    """
     # Loading the datasets
     building_features = pd.read_csv("data/sanitized_complete.csv")
 
