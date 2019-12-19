@@ -4,7 +4,7 @@ import numpy as np
 
 def filter_columns():
   # prediction = pd.read_csv('data/hourly_predictions.csv')
-  prediction = pd.read_csv('data/jonctionnofloors_TH.tsv', sep='\t')
+  prediction = pd.read_csv('../data/jonctionnofloors_TH.tsv', sep='\t')
   data_top = prediction.columns.tolist()
   heatings_col = [s for s in data_top if 'Heating' in s]
   prediction = prediction[heatings_col]
@@ -16,8 +16,8 @@ def filter_columns():
 
 
 def pass_to_daily():
-  df = pd.read_csv('data/hourly_predictions.csv')
-  df2 = pd.read_csv(r'data/weather_forecast.csv')
+  df = pd.read_csv('../data/hourly_predictions.csv')
+  df2 = pd.read_csv(r'../data/weather_forecast.csv')
 
   df = df.groupby(np.arange(len(df)) // 24).sum()
   df['timestamp'] = df.index.map(lambda t: pd.Timestamp(year=2017, month=1, day=1) + pd.Timedelta(days=t))
@@ -38,7 +38,7 @@ def pass_to_daily():
 
 
 def filter_forecast():
-  df = pd.read_csv('data/Geneva.cli', sep='\t', header=3)
+  df = pd.read_csv('../data/Geneva.cli', sep='\t', header=3)
 
   def row_to_timestamp(row):
     pd.Timestamp(

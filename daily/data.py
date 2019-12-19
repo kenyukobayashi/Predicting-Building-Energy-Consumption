@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 
-class HourlyCrossValidation:
+class DailyCrossValidation:
   def __init__(self, df, k):
     np.random.seed(4)
     indices = np.random.permutation(df.nb_buildings)
@@ -16,12 +16,12 @@ class HourlyCrossValidation:
     for ind in range(len(self.indices)):
       tr_ind = np.delete(self.indices, ind, axis=0).flatten()
       te_ind = self.indices[ind].flatten()
-      yield HourlyPreprocessor(self.df, split=(tr_ind, te_ind))
+      yield DailyPreprocessor(self.df, split=(tr_ind, te_ind))
 
 
-class HourlyDataset(Dataset):
+class DailyDataset(Dataset):
   def __init__(self, building_features, weather_forecast, labels):
-    super(HourlyDataset, self).__init__()
+    super(DailyDataset, self).__init__()
     self.features = building_features.dropna().copy()
     self.forecast = weather_forecast.copy()
 
@@ -45,8 +45,8 @@ class HourlyDataset(Dataset):
     return torch.cat((building_tensor, forecast_tensor), 0), torch.tensor([self.labels.loc[timestamp, egid]])
 
   def split_buildings(self, tr_egid, te_egid):
-    return HourlyDataset(self.features.iloc[tr_egid], self.forecast, self.labels), \
-           HourlyDataset(self.features.iloc[te_egid], self.forecast, self.labels)
+    return DailyDataset(self.features.iloc[tr_egid], self.forecast, self.labels), \
+           DailyDataset(self.features.iloc[te_egid], self.forecast, self.labels)
 
   def apply_to_each(self, functions):
     for col, f in functions.items():
@@ -66,8 +66,8 @@ class HourlyDataset(Dataset):
     return np.array([x.numpy() for x, y in self]), np.array([y.numpy() for x, y in self]).ravel()
 
 
-class HourlyPreprocessor:
-  def __init__(self, dataset: HourlyDataset, split=0.75):
+class DailyPreprocessor:
+  def __init__(self, dataset: DailyDataset, split=0.75):
     if isinstance(split, float):
       egids = dataset.features.index.tolist()
       np.random.shuffle(egids)
@@ -78,22 +78,10 @@ class HourlyPreprocessor:
       tr, te = split
     self.train, self.test = dataset.split_buildings(tr, te)
 
-    print("Train log distribution:")
-    # print(np.log10(self.train.labels.to_numpy()).astype(int).value_counts())
-    print(np.asarray(np.unique(np.log10(self.train.labels.to_numpy()).astype(int), return_counts=True)))
-    print(np.asarray(np.unique(np.log10(self.test.labels.to_numpy()).astype(int), return_counts=True)))
-    print(self.train.nb_buildings, self.train.nb_features)
-    print(self.test.nb_buildings, self.test.nb_features)
-
-    # print("Test log distribution:")
-    # print(np.log10(self.train.labels.numpy()).astype(int).value_counts())
-
     self.compute_normal()
     self.normalize()
     self.train_loader = DataLoader(self.train, batch_size=16, shuffle=True)
     self.test_loader = DataLoader(self.test, batch_size=256, shuffle=True)
-
-    # labels = np.log10(labels)
 
   def compute_normal(self):
     columns_to_normalize = ['GASTW', 'GAREA'] + ['G_Dh_mean', 'G_Bn_mean', 'G_Dh_var', 'G_Bn_var', 'Ta_mean', 'Ta_var', 'Ta_min',
