@@ -34,7 +34,7 @@ This dataset contains daily weather forecasts defined by the day and their diffe
 
 #### Daily predictions data : *daily_predictions.csv*
 The daily predictions made by our ANN model :
-* Timestamp : The day in the yyyy-mm-dd format.
+* Timestamp : The day in the *yyyy-mm-dd* format.
 * xxxxxxx : The EGID of the building (building id), for which its heating demands are given for each timestamp.
 
 
@@ -51,7 +51,7 @@ At the end, prints the average Ln Q error on testing and the standard deviation.
 
 ## Python files
 
-1. preprocessor.py :
+#### preprocessor.py :
 *Class* : **DataPreProcessor**
 Given a dataset in csv format, it allows to :
 * Split data :
@@ -64,21 +64,21 @@ Specify the use of the logarithm for the normalization with *use_log* parameter 
 * Evaluate data :
 Given a dataset and associated predictions made by a model, the *evaluate* method computes different losses of the predictions.
 
-2. cross_validation.py :
+#### cross_validation.py :
 *Class* : **CrossValidation**
 Given a dataset in a csv format, it returns an array of k DataPreProcessor instances,
 allowing a K-fold Cross Validation process to be done on the dataset :
 * Split ratio :
 Specify the ratio with the *k* parameter in the constructor.
 
-3. correlations.py :
+#### correlations.py :
 Computes the pair wise correlations on the building features and the weather forecast features.
 Presents the results in the form of heatmaps.
 
-4. regression.py :
+#### regression.py :
 Implements Ridge Regression and Least Squares method.
 
-5. svr.py :
+#### svr.py :
 *Class* : **Svr**
 Implements Support Vector Regression method, with the following parameters to be specified in the constructor :
 * data : DataPreProcessor instance of the dataset : DataPreProcessor
@@ -93,7 +93,7 @@ Implements Support Vector Regression method, with the following parameters to be
 Note that these hyper parameters have default values to be assigned if not specified.
 The best hyper parameters given by the grid-search algorithm are specified in the run_training function.
 
-6. ann.py :
+#### ann.py :
 *Class* : **Ann**
 Implements Artificial Neural Networks method, with the following parameters to be specified in the constructor :
 * data :  DataPreProcessor instance of the dataset, DataPreProcessor
