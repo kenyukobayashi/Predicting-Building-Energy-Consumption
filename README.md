@@ -10,7 +10,7 @@
 
 ## Data files
 
-* #### Buildings' dataset : *sanitized_complete.csv*
+1. #### Buildings' dataset : *sanitized_complete.csv*
 This dataset contains every buildings defined by their associated heating/cooling energy demands and their features :
 * EGID : The building id.
 * heating : The yearly energy demand for heating, in Wh.
@@ -22,7 +22,7 @@ This dataset contains every buildings defined by their associated heating/coolin
 * xx-yy : Boolean which specifies whether the building was built between 19xx and 19yy or not.
 * a2000 : Boolean which specifies whether the building was built after 2000 or not.
 
-#### * Forecasts' dataset : *daily_forecast.csv*
+2. #### Forecasts' dataset : *daily_forecast.csv*
 This dataset contains daily weather forecasts defined by the day and their different features :
 * Timestamp : The day in the yyyy-mm-dd format.
 * h_day : The hour of the day
@@ -32,7 +32,7 @@ This dataset contains daily weather forecasts defined by the day and their diffe
 * FF_min/mean/var :
 * DD_min/mean/var :
 
-#### * Daily predictions data : *daily_predictions.csv*
+3. #### Daily predictions data : *daily_predictions.csv*
 The daily predictions made by our ANN model :
 * Timestamp : The day in the *yyyy-mm-dd* format.
 * xxxxxxx : The EGID of the building (building id), for which its heating demands are given for each timestamp.
@@ -51,7 +51,7 @@ At the end, prints the average Ln Q error on testing and the standard deviation.
 
 ## Python files
 
-#### * preprocessor.py :
+1. #### preprocessor.py :
 *Class* : **DataPreProcessor**<br/>
 Given a dataset in csv format, it allows to :
 * Split data :
@@ -64,21 +64,21 @@ Specify the use of the logarithm for the normalization with *use_log* parameter 
 * Evaluate data :
 Given a dataset and associated predictions made by a model, the *evaluate* method computes different losses of the predictions.
 
-#### * cross_validation.py :
+2. #### cross_validation.py :
 *Class* : **CrossValidation**<br/>
 Given a dataset in a csv format, it returns an array of k DataPreProcessor instances,
 allowing a K-fold Cross Validation process to be done on the dataset :
 * Split ratio :
 Specify the ratio with the *k* parameter in the constructor.
 
-#### * correlations.py :
+3. #### correlations.py :
 Computes the pair wise correlations on the building features and the weather forecast features.
 Presents the results in the form of heatmaps.
 
-#### regression.py :
+4. #### regression.py :
 Implements Ridge Regression and Least Squares method.
 
-#### * svr.py :
+5. #### svr.py :
 *Class* : **Svr**<br/>
 Implements Support Vector Regression method, with the following parameters to be specified in the constructor :
 * data : DataPreProcessor instance of the dataset : DataPreProcessor
@@ -93,7 +93,7 @@ Implements Support Vector Regression method, with the following parameters to be
 Note that these hyper parameters have default values to be assigned if not specified.
 The best hyper parameters given by the grid-search algorithm are specified in the run_training function.
 
-#### * ann.py :
+6. #### ann.py :
 *Class* : **Ann**<br/>
 Implements Artificial Neural Networks method, with the following parameters to be specified in the constructor :
 * data :  DataPreProcessor instance of the dataset, DataPreProcessor
