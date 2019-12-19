@@ -10,7 +10,7 @@
 
 ## Data files
 
-#### * Buildings' dataset : *sanitized_complete.csv*
+* #### Buildings' dataset : *sanitized_complete.csv*
 This dataset contains every buildings defined by their associated heating/cooling energy demands and their features :
 * EGID : The building id.
 * heating : The yearly energy demand for heating, in Wh.
