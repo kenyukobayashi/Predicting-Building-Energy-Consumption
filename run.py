@@ -30,9 +30,7 @@ def annual_predictions(method):
 
 def daily_prediction():
   """Run the ANN for daily prediction with 4-fold cross validation"""
-  building_features = pd.read_csv(BUILDINGS_FILE) \
-    .set_index('EGID') \
-    .drop(columns=['heating', 'cooling'])
+  building_features = pd.read_csv(BUILDINGS_FILE).set_index('EGID').drop(columns=['heating', 'cooling'])
   weather_forecast = pd.read_csv(DAILY_WEATHER_FILE).set_index('timestamp')
 
   labels = pd.read_csv(DAILY_PREDICTIONS_FILE).set_index('timestamp')

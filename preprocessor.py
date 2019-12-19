@@ -15,11 +15,6 @@ class DataPreProcessor:
     train = df.iloc[tr].copy()
     test = df.iloc[te].copy()
 
-    # print("Train log distribution:")
-    # print(np.log10(train['heating']).astype(int).value_counts())
-    #
-    # print("Test log distribution:")
-    # print(np.log10(test['heating']).astype(int).value_counts())
     self.use_log = use_log
     self.compute_normal(train, columns_to_normalize)
     self.train = PandaDataset(self.normalize(train))

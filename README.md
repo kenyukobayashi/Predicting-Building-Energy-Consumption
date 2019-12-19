@@ -1,4 +1,4 @@
-# Machine Learning Project : Predicting Energy Building Consumption
+# Machine Learning Project : Predicting Building Energy Consumption
 
 
 ## Libraries required
