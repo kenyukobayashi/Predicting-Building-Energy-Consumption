@@ -110,8 +110,10 @@ class DailyPreprocessor:
     return norm_factors
 
   def normalize(self):
-    """Normalize columns, and transform targets to their log version (divided by 10 for faster convergence)"""
-    functions = {col: lambda x: (x - subi) / divi for col, (subi, divi) in self.norm_factors.items()}
+    # self.norm_factors['labels'] = (0, 100_000)
+    functions = {}
+    for col, (subi, divi) in self.norm_factors.items():
+      functions[col] = (lambda x, subi=subi, divi=divi: (x - subi) / divi)
     functions['labels'] = lambda x: np.log10(x + 1) / 10.0
     self.train.apply_to_each(functions)
     self.test.apply_to_each(functions)
@@ -154,6 +156,6 @@ class DailyCrossValidation:
   def __iter__(self):
     """Iterate on each fold of the cross validation"""
     for ind in range(len(self.indices)):
-      tr_ind = np.delete(self.indices, ind, axis=0).flatten()
+      tr_ind = np.delete(self.indices, ind).flatten()
       te_ind = self.indices[ind].flatten()
       yield DailyPreprocessor(self.df, split=(tr_ind, te_ind))
