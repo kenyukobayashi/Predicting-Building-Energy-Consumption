@@ -1,6 +1,6 @@
 <h1 align="center"> Machine Learning Project: Predicting Building Energy Consumption </h1>
 
-## Authors 
+## Authors
 Bensoussan Jeremy
 
 Kobayashi Kenyu
@@ -13,7 +13,7 @@ Renauld Paul
 * Pytorch
 * Scikit-learn
 
-This can be installed with `pip install -r requirements.txt`
+This can be installed with `pip3 install -r requirements.txt`
 
 ## Running
 
@@ -70,8 +70,8 @@ Contains functions that were used to produce the datasets, from less precise, la
 
 
 ### `annual` package
-Contains models for annual prediction. All model's file contains a function 
-to run them with on a dataset with their best parameters. 
+Contains models for annual prediction. All model's file contains a function
+to run them with on a dataset with their best parameters.
 
 1. #### `preprocessor.py`:
 *Class*: **DataPreProcessor**<br/>
@@ -123,7 +123,7 @@ Implements Artificial Neural Networks method, with the following parameters to b
 Contains preprocessing and data classes as well as the ANN model for daily predictions.
 
 1. #### `data.py`:
-Contains classes `DailyDataset`, `DailyPreprocessor`, `DailyCrossValidation` 
+Contains classes `DailyDataset`, `DailyPreprocessor`, `DailyCrossValidation`
 that have similar purpose than the equivalent for annual prediction, but adapted for daily prediction
 
 2. #### `ann.py`:
